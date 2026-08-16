@@ -1,0 +1,91 @@
+name: Todo App - Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+
+    # This means the complete job runs on YOUR self-hosted machine
+    runs-on: self-hosted
+
+    steps:
+
+      # --------------------------------------------------
+      # 1. Checkout source code
+      # --------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+
+      # --------------------------------------------------
+      # 2. Check Node.js and npm
+      # --------------------------------------------------
+      - name: Check Node.js version
+        run: |
+          node --version
+          npm --version
+
+
+      # --------------------------------------------------
+      # 3. Install dependencies
+      # --------------------------------------------------
+      - name: Install dependencies
+        run: npm install
+
+
+      # --------------------------------------------------
+      # 4. Build React application
+      # --------------------------------------------------
+      - name: Build React application
+        run: npm run build
+
+
+      # --------------------------------------------------
+      # 5. Check build output
+      # --------------------------------------------------
+      - name: Verify build
+        run: |
+          echo "Build completed successfully"
+          ls -la
+          ls -la build || true
+          ls -la dist || true
+
+
+      # --------------------------------------------------
+      # 6. Deploy to Nginx
+      # --------------------------------------------------
+      - name: Deploy to Nginx
+        run: |
+          sudo rm -rf /var/www/html/*
+          
+          if [ -d "build" ]; then
+            sudo cp -r build/* /var/www/html/
+          elif [ -d "dist" ]; then
+            sudo cp -r dist/* /var/www/html/
+          else
+            echo "ERROR: No build or dist directory found"
+            exit 1
+          fi
+
+
+      # --------------------------------------------------
+      # 7. Restart Nginx
+      # --------------------------------------------------
+      - name: Restart Nginx
+        run: |
+          sudo nginx -t
+          sudo systemctl restart nginx
+
+
+      # --------------------------------------------------
+      # 8. Verify Nginx
+      # --------------------------------------------------
+      - name: Verify Nginx
+        run: |
+          sudo systemctl is-active nginx
+          echo "Todo App deployed successfully!"
