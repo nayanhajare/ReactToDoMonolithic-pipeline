@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  ci:
     runs-on: self-hosted
 
     steps:
@@ -14,10 +14,6 @@ jobs:
       - name: Install Dependencies
         shell: cmd
         run: npm install
-
-      - name: Build React Application
-        shell: cmd
-        run: npm run build
 
       - name: Cleanup
         if: always()
